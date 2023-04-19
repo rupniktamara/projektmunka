@@ -1,16 +1,15 @@
-<?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-?>
 <?php $title = 'Home'; ?>
 <?php $metaTags = 'tag1 tag2'; ?>
 <?php $currentPage = 'index'; ?>
 <?php include('./phphelpers/helpers.php'); ?>
 <?php include('./phphelpers/mysqlOps.php'); ?>
 <?php include('./phphelpers/sendMail.php'); ?>
-<?php require_once(__DIR__ . '/head.php'); ?>
-<?php require_once(__DIR__ . '/navbar.php'); ?>
+<?php require_once(__DIR__.'/head.php'); ?>
+<?php if (!isset($_REQUEST['formType']) || (isset($_REQUEST['formType']) &&  'login' !== $_REQUEST['formType'])) {
+  require_once(__DIR__.'/navbar.php'); 
+} else {
+  session_start();
+}?>
 <?php
 $mysqli = connectDB();
 
@@ -19,92 +18,90 @@ $reg_DONE_OK = false;
 $login_error = '';
 $reg_progress = false;
 
-$kind = isset($_REQUEST['kind']) ? $_REQUEST['kind'] : "";
-$name = isset($_REQUEST['name']) ? $_REQUEST['name'] : "";
+  $kind = isset($_REQUEST['kind']) ? $_REQUEST['kind'] : "";
+  $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : "";
 
-if (isset($_REQUEST['formType']) && 'register' === $_REQUEST['formType']) {
-  if (
-    isset($_REQUEST['registerName']) &&
-    isset($_REQUEST['registerUsername']) &&
-    isset($_REQUEST['registerEmail']) &&
-    isset($_REQUEST['registerPhone']) &&
-    isset($_REQUEST['registerPassword']) &&
-    isset($_REQUEST['registerRepeatPassword'])
-  ) {
-    $name = mysqli_real_escape_string($mysqli, $_REQUEST['registerName']);
-    $username = mysqli_real_escape_string($mysqli, $_REQUEST['registerUsername']);
-    $email = mysqli_real_escape_string($mysqli, $_REQUEST['registerEmail']);
-    $phone = mysqli_real_escape_string($mysqli, $_REQUEST['registerPhone']);
-    $password = mysqli_real_escape_string($mysqli, $_REQUEST['registerPassword']);
-    $repeatPassword = mysqli_real_escape_string($mysqli, $_REQUEST['registerRepeatPassword']);
-    $reg_progress = true;
+  if (isset($_REQUEST['formType']) && 'register' === $_REQUEST['formType']) {
+      if (isset($_REQUEST['registerName']) &&
+          isset($_REQUEST['registerUsername']) &&
+          isset($_REQUEST['registerEmail']) &&
+          isset($_REQUEST['registerPhone']) &&
+          isset($_REQUEST['registerPassword']) &&
+          isset($_REQUEST['registerRepeatPassword'])
+      ) {
+          $name = mysqli_real_escape_string($mysqli, $_REQUEST['registerName']);
+          $username = mysqli_real_escape_string($mysqli, $_REQUEST['registerUsername']);
+          $email = mysqli_real_escape_string($mysqli, $_REQUEST['registerEmail']);
+          $phone = mysqli_real_escape_string($mysqli, $_REQUEST['registerPhone']);
+          $password = mysqli_real_escape_string($mysqli, $_REQUEST['registerPassword']);
+          $repeatPassword = mysqli_real_escape_string($mysqli, $_REQUEST['registerRepeatPassword']);
+          $reg_progress = true;
 
-    $query = "SELECT * FROM `Users` WHERE Users_username=?";
-    $result = dbOp_select($mysqli, $query, "s", $username);
-    if (count($result) ==  0) {
-      if ($password === $repeatPassword) {
-        $hashedPassword = md5($password);
-        $query = "INSERT into Users (Users_email, Users_phone, Users_username, Users_password, Users_name)
+          $query = "SELECT * FROM `Users` WHERE Users_username=?";
+          $result = dbOp_select($mysqli, $query, "s", $username);
+          if (count($result) ==  0) {
+            if ($password === $repeatPassword) {
+                $hashedPassword = md5($password);
+                $query = "INSERT into Users (Users_email, Users_phone, Users_username, Users_password, Users_name)
                     VALUES('$email', '$phone', '$username', '$hashedPassword', '$name')";
-        $mysqli->query($query);
+                $mysqli->query($query);
+            } else {
+                $reg_error = 'A jelszavak nem egyeznek!';
+            }
+          } else {
+            $reg_error = 'A megadott felhasználónév foglalt!';
+          }
       } else {
-        $reg_error = 'A jelszavak nem egyeznek!';
+          $reg_error = 'Minden mezőt ki kell tölteni!';
       }
-    } else {
-      $reg_error = 'A megadott felhasználónév foglalt!';
-    }
-  } else {
-    $reg_error = 'Minden mezőt ki kell tölteni!';
+  
+      if ($reg_error == '' && $reg_progress) {
+        $reg_DONE_OK = true;
+        $msg = "Kedves $name!</br></br>Köszönjük, hogy regisztráltál az oldalunkra!</br></br>Baloo alapítvány";
+        sendMail($email, "Sikeres regisztráció", $msg);
+      } 
   }
 
-  if ($reg_error == '' && $reg_progress) {
-    $reg_DONE_OK = true;
-    $msg = "Kedves $name!</br></br>Köszönjük, hogy regisztráltál az oldalunkra!</br></br>Baloo alapítvány";
-    sendMail($email, "Sikeres regisztráció", $msg);
-  }
-}
+  if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
+    
+      if (isset($_REQUEST['loginName']) &&
+          isset($_REQUEST['loginPassword'])
+      ) {
+          $username = mysqli_real_escape_string($mysqli, $_REQUEST['loginName']);
+          $password = mysqli_real_escape_string($mysqli, $_REQUEST['loginPassword']);
+          $query = "SELECT * FROM `Users` WHERE Users_username=? AND Users_password=?";
+          $result = dbOp_select($mysqli, $query, "ss", $username, md5($password));
 
-if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
+          if (count($result) == 1) {
+              $_SESSION['username'] = $username;
+              unset($_SESSION['error_displayed']);
+              if ($kind != "") {
+                header("Location: idopont.php?kind=" . $kind . "&name=" . $name);
+              } else {
+                header("Location: index.php");
+              }
 
-  if (
-    isset($_REQUEST['loginName']) &&
-    isset($_REQUEST['loginPassword'])
-  ) {
-    $username = mysqli_real_escape_string($mysqli, $_REQUEST['loginName']);
-    $password = mysqli_real_escape_string($mysqli, $_REQUEST['loginPassword']);
-    $query = "SELECT * FROM `Users` WHERE Users_username=? AND Users_password=?";
-    $result = dbOp_select($mysqli, $query, "ss", $username, md5($password));
-
-    if (count($result) == 1) {
-      $_SESSION['username'] = $username;
-      unset($_SESSION['error_displayed']);
-      if ($kind != "") {
-        header("Location: idopont.php?kind=" . $kind . "&name=" . $name);
-      } else {
-        header("Location: index.php");
+              exit();
+          } else {
+              if (!isset($_SESSION['error_displayed'])) {
+                $login_error = 'A felhasználó név vagy a jelszó nem megfelelő!';
+                $_SESSION['error_displayed'] = 'displayed';
+              } else {
+                $login_error = '';
+              }
+//              session_destroy();
+          }
       }
-
-      exit();
-    } else {
-      if (!isset($_SESSION['error_displayed'])) {
-        $login_error = 'A felhasználó név vagy a jelszó nem megfelelő!';
-        $_SESSION['error_displayed'] = 'displayed';
-      } else {
-        $login_error = '';
-      }
-      //              session_destroy();
-    }
   }
-}
 ?>
 
 <body>
-  <script>
+<script>
     function clickOnRegister() {
       document.getElementById("tab-register").click();
     }
-  </script>
-  <?php includeWithVariables(__DIR__ . '/heading.php', array('pagename' => 'Bejelentkezés / Regisztráció')); ?>
+</script>
+<?php includeWithVariables(__DIR__.'/heading.php', array('pagename' => 'Bejelentkezés / Regisztráció')); ?>
   <!-- Team Start -->
   <div class="container-xxl py-5">
     <div class="container">
@@ -113,10 +110,12 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
           <!-- Pills navs -->
           <ul class="nav nav-pills nav-justified mb-3" id="ex1" role="tablist">
             <li class="nav-item" role="presentation">
-              <a class="nav-link active" id="tab-login" href="#" role="tab" aria-controls="pills-login" aria-selected="true">Bejelentkezés</a>
+              <a class="nav-link active" id="tab-login" href="#" role="tab"
+                aria-controls="pills-login" aria-selected="true">Bejelentkezés</a>
             </li>
             <li class="nav-item" role="presentation">
-              <a class="nav-link" id="tab-register" href="#" role="tab" aria-controls="pills-register" aria-selected="false">Regisztráció</a>
+              <a class="nav-link" id="tab-register" href="#" role="tab"
+                aria-controls="pills-register" aria-selected="false">Regisztráció</a>
             </li>
           </ul>
           <!-- Pills navs -->
@@ -125,30 +124,28 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
           <div class="tab-content ftext">
             <div class="tab-pane fade  show active" id="pills-login" role="tabpanel" aria-labelledby="tab-login">
               <form action="" method="post" autocomplete="off">
-                <?php if ($reg_DONE_OK) { ?>
-                  <div class="form-label">
-                    <div class="regsuccess">A regisztráció sikeres, jelentkezz be!</div>
-                  </div>
-                <?php
+            <?php if ($reg_DONE_OK) { ?>
+                  <div class="form-label"><div class="regsuccess">A regisztráció sikeres, jelentkezz be!</div></div>
+            <?php
                   $reg_DONE_OK = false;
-                } ?>
-                <input type="hidden" name="formType" value="login" />
+            } ?>
+                  <input type="hidden" name="formType" value="login"/>
                 <!-- Email input -->
-                <?php if ($login_error != '') { ?>
-                  <div class="form-outline mb-4">
-                    <label class="form-label error"><?= $login_error ?></label>
-                  </div>
-                <?php } ?>
+            <?php if ($login_error != '') { ?>
+                <div class="form-outline mb-4">
+                  <label class="form-label error" ><?=$login_error?></label>
+                </div>
+            <?php }?>
 
                 <div class="form-outline mb-4">
                   <label class="form-label" for="loginName">Felhasználónév</label>
-                  <input type="text" id="loginName" name="loginName" class="form-control" value="" autocomplete="off" autofill="off" />
+                  <input type="text" id="loginName" name="loginName" class="form-control" value=""  autocomplete="off" autofill="off"/>
                 </div>
 
                 <!-- Password input -->
                 <div class="form-outline mb-4">
                   <label class="form-label" for="loginPassword">Jelszó</label>
-                  <input type="password" id="loginPassword" name="loginPassword" class="form-control" value="" />
+                  <input type="password" id="loginPassword" name="loginPassword" class="form-control" value=""/>
                 </div>
 
                 <!-- 2 column grid layout -->
@@ -157,7 +154,7 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
                     <!-- Checkbox -->
                     <div class="form-check mb-3 mb-md-0">
                       <label class="form-check-label" for="loginCheck"> Emlékezz rám </label>
-                      <input class="form-check-input" type="checkbox" value="" id="loginCheck" name="loginCheck" />
+                      <input class="form-check-input" type="checkbox"  value="" id="loginCheck" name="loginCheck" />
                     </div>
                   </div>
 
@@ -176,8 +173,8 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
               </form>
             </div>
             <div class="tab-pane fade" id="pills-register" role="tabpanel" aria-labelledby="tab-register">
-              <form action="" method="post">
-                <input type="hidden" name="formType" value="register" />
+              <form action="" method="post" >
+                  <input type="hidden" name="formType" value="register"/>
 
                 <!-- Username input -->
                 <div class="form-outline mb-4">
@@ -221,7 +218,8 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
                   <label class="form-check-label" for="registerCheck">
                     <span>Elolvastam a <a target="_blank" href="https://docs.google.com/document/d/1xSd9fAG6mzXtN14ZYJXUloFGvMVCQPxP/edit?usp=share_link&ouid=111432240287431856404&rtpof=true&sd=true">szerződési feltételeket</a></span>
                   </label>
-                  <input class="form-check-input me-2" type="checkbox" value="" id="registerCheck" aria-describedby="registerCheckHelpText" />
+                  <input class="form-check-input me-2" type="checkbox" value="" id="registerCheck"
+                    aria-describedby="registerCheckHelpText" />
                 </div>
 
                 <!-- Submit button -->
@@ -238,10 +236,10 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
 
 
 
-  <?php require_once(__DIR__ . '/footer.php'); ?>
-  <?php require_once(__DIR__ . '/scripts.php'); ?>
+<?php require_once(__DIR__.'/footer.php'); ?>
+<?php require_once(__DIR__.'/scripts.php'); ?>
 
-  <script>
+<script>
     const tabLogin = document.getElementById("tab-login");
     const tabRegister = document.getElementById("tab-register");
     tabLogin.addEventListener("click", () => {
@@ -260,6 +258,6 @@ if (isset($_REQUEST['formType']) &&  'login' === $_REQUEST['formType']) {
       loginBlock.classList.remove("show", "active");
       registerBlock.classList.add("show", "active");
     });
-  </script>
+</script>
 
 </body>
