@@ -77,9 +77,8 @@
           <div class="service-item text-center pt-3">
             <div class="p-4">
               <i class="fa fa-3x bi bi bi-activity text-primary mb-4"></i>
-              <h5 class="mb-3">Doktori ellátás</h5>
-              <p>A környék legjobb állatorvosával működünk közre, aki gondoskodik az itt lakókról! Ha az itt
-                örökbefogadott állatot visszaviszed, kedvezmény vár rád! </p>
+              <h5 class="mb-3">Doktori ellátás <i>(hamarosan elérhető)</i></h5>
+              <p>A környék legjobb állatorvosával működünk közre, aki gondoskodik az itt lakókról! <br><br></p>
             </div>
           </div>
         </div>

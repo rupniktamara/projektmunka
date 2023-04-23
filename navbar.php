@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() != PHP_SESSION_ACTIVE) {
+  session_start();
+}
 $loggedUser = "";
 if (isset($_SESSION['username'])) {
   $loggedUser = $_SESSION['username'];
@@ -75,7 +77,9 @@ if (isset($_SESSION['username'])) {
         <a href="logout.php" class="btn btn-primary py-md-3 px-md-4 me-3  vertical-center menutext">Kijelentkezés</a>
       <?php } ?>
     </div>
+
   </div>
+
   <div class="hamburger" onclick="togglehamb()">☰</div>
 </nav>
 

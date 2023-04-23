@@ -2,10 +2,15 @@
 <?php $metaTags = 'tag1 tag2'; ?>
 <?php $currentPage = 'index'; ?>
 <?php require_once(__DIR__ . '/head.php'); ?>
-<?php require_once(__DIR__ . '/navbar.php'); ?>
 <?php include('./phphelpers/helpers.php'); ?>
 <?php include('./phphelpers/mysqlOps.php'); ?>
 <?php include('./phphelpers/sendMail.php'); ?>
+<?php if (isset($_REQUEST['submitted']) || getLoggedUser() != "") {
+  require_once(__DIR__.'/navbar.php'); 
+} else {
+  session_start();
+}?>
+
 <?php
 $mysqli = connectDB();
 $success = false;

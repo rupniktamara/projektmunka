@@ -84,18 +84,19 @@ $mysqli->close();
                 <?php foreach ($result as &$value) {
                     $timestr = is_null($value['timefrom']) ? $value['datenote'] : substr($value['timefrom'], 0, 5) . "-" . substr($value['timeto'], 0, 5);
                     $dateto = is_null($value['dateto']) ? "" : $value['dateto'] . '-ig';
+                    $datefrom = is_null($value['dateto']) ? $value['datefrom'] . "-től" : $value['datefrom'];
                     ?>
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                         <div class="course-item bg-light">
                             <div class="position-relative overflow-hidden">
                                 <img class="img-fluid" src="img/<?=$value["picture"]?>" alt="">
                                 <?php if ($value['online'] == 1) { ?>
-                                    <button onclick="showReg('<?=$value['title']?>', '<?=$value['id']?>')" class="btn btn-primary onlineevent">Regisztráció</button>
+                                    <button onclick="showReg('<?=$value['title']?>', '<?=$value['id']?>')" class="btn btn-danger onlineevent">Regisztráció</button>
                                 <?php } ?>
                             </div>
                             <div class="text-center p-4 pb-0">
                                 <h3 class="mb-0"><?=$value['title']?></h3>
-                                <h5 class="mb-4"><?=$value['datefrom']?>-tól <br> <?=$value['datenote']?> <br> <?=$value['pricetext']?></h5>
+                                <h5 class="mb-4"><?=$datefrom?> <br> <?=$value['datenote']?> <br> <?=$value['pricetext']?></h5>
 
                                 <h5 class="mb-4"><?=$value['note']?></h5>
                             </div>

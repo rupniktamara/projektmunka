@@ -1106,3 +1106,7 @@ input[type=number] {
 .hide {
     display: none;
 }
+
+.whitetext {
+    color: white;
+}

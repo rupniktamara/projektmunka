@@ -129,10 +129,10 @@
         <button type="submit" class="col-12 py-1 btn btn-warning btn-block text-center text-black">Szűrés</button>
         <button onclick="clearFilter()" class="col-12 py-1 btn btn-warning btn-block text-center text-black">Szűrés törlése</button>
         </form>
+
     </div>
-
+    
     <div class="animals container-fluid">
-
     <?php foreach ($result as &$value) { 
       $goidopont = getLoggedUser() != "" ? "idopont.php?kind=macska&name=" . $value['Cat_name'] : "reg_log.php?kind=macska&name=" . $value['Cat_name'];
       $bdate = date_create($value['Cat_birth']);
