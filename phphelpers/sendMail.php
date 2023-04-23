@@ -7,12 +7,12 @@ function sendMail($to, $subject, $msg)
 
 // Debug rész, koommentezd vissza, ha akarod látni a küldendő e-mail tartalmát.
 
-    header('Content-Disposition: attachment; filename="sample.txt"');
-    header('Content-Type: text/plain');
-    header('Content-Length: ' . strlen($msg));
-    header('Connection: close');
+    // header('Content-Disposition: attachment; filename="sample.txt"');
+    // header('Content-Type: text/plain');
+    // header('Content-Length: ' . strlen($msg));
+    // header('Connection: close');
 
-    echo $msg;
+    // echo $msg;
 
     mail($to, $subject, $msg, $headers);
 }
